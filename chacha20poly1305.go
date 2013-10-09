@@ -67,26 +67,8 @@ func (*chacha20Key) NonceSize() int {
 	return chacha20.NonceSize
 }
 
-func (k *chacha20Key) Open(dst, nonce, ciphertext, data []byte) ([]byte, error) {
-	if len(nonce) != k.NonceSize() {
-		return nil, ErrInvalidNonce
-	}
-
-	digest := ciphertext[len(ciphertext)-k.Overhead():]
-	ciphertext = ciphertext[0 : len(ciphertext)-k.Overhead()]
-
-	c, h := k.initialize(nonce)
-
-	calculateTag(h, ciphertext, data)
-
-	if subtle.ConstantTimeCompare(h.Sum(nil), digest) != 1 {
-		return nil, ErrAuthFailed
-	}
-
-	plaintext := make([]byte, len(ciphertext))
-	c.XORKeyStream(plaintext, ciphertext)
-
-	return plaintext, nil
+func (*chacha20Key) Overhead() int {
+	return poly1305.Size
 }
 
 func (k *chacha20Key) Seal(dst, nonce, plaintext, data []byte) []byte {
@@ -99,13 +81,31 @@ func (k *chacha20Key) Seal(dst, nonce, plaintext, data []byte) []byte {
 	ciphertext := make([]byte, len(plaintext))
 	c.XORKeyStream(ciphertext, plaintext)
 
-	calculateTag(h, ciphertext, data)
+	tag(h, ciphertext, data)
 
 	return append(dst, h.Sum(ciphertext)...)
 }
 
-func (*chacha20Key) Overhead() int {
-	return poly1305.Size
+func (k *chacha20Key) Open(dst, nonce, ciphertext, data []byte) ([]byte, error) {
+	if len(nonce) != k.NonceSize() {
+		return nil, ErrInvalidNonce
+	}
+
+	digest := ciphertext[len(ciphertext)-k.Overhead():]
+	ciphertext = ciphertext[0 : len(ciphertext)-k.Overhead()]
+
+	c, h := k.initialize(nonce)
+
+	tag(h, ciphertext, data)
+
+	if subtle.ConstantTimeCompare(h.Sum(nil), digest) != 1 {
+		return nil, ErrAuthFailed
+	}
+
+	plaintext := make([]byte, len(ciphertext))
+	c.XORKeyStream(plaintext, ciphertext)
+
+	return plaintext, nil
 }
 
 // Converts the given key and nonce into 64 bytes of ChaCha20 key stream, the
@@ -127,7 +127,7 @@ func (k *chacha20Key) initialize(nonce []byte) (cipher.Stream, hash.Hash) {
 	return c, h
 }
 
-func calculateTag(h hash.Hash, ciphertext, data []byte) {
+func tag(h hash.Hash, ciphertext, data []byte) {
 	b := make([]byte, 8)
 
 	binary.LittleEndian.PutUint64(b, uint64(len(data)))
