@@ -31,35 +31,51 @@ import (
 	"hash"
 )
 
-type params struct {
-	key []byte
-}
+type chacha20Key [chacha20.KeySize]byte // A 256-bit ChaCha20 key.
 
-// ErrAuthFailed is returned when the message authentication is invalid due to
-// tampering.
-var ErrAuthFailed = errors.New("chacha20poly1305: message authentication failed")
+var (
+	// ErrAuthFailed is returned when the message authentication is invalid due
+	// to tampering.
+	ErrAuthFailed = errors.New("chacha20poly1305: message authentication failed")
 
-// NewChaCha20Poly1305 creates a new AEAD instance using the given key.
+	// ErrInvalidKey is returned when the provided key is the wrong size.
+	ErrInvalidKey = errors.New("chacha20poly1305: invalid key size")
+
+	// ErrInvalidNonce is returned when the provided nonce is the wrong size.
+	ErrInvalidNonce = errors.New("chacha20poly1305: invalid nonce size")
+
+	// KeySize is the required size of ChaCha20 keys.
+	KeySize = chacha20.KeySize
+)
+
+// NewChaCha20Poly1305 creates a new AEAD instance using the given key. The key
+// must be exactly 256 bits long.
 func NewChaCha20Poly1305(key []byte) (cipher.AEAD, error) {
-	if len(key) != chacha20.KeySize {
-		return nil, chacha20.ErrInvalidKey
+	if len(key) != KeySize {
+		return nil, ErrInvalidKey
 	}
-	return &params{key: key}, nil
+
+	k := new(chacha20Key)
+	for i, v := range key {
+		k[i] = v
+	}
+
+	return k, nil
 }
 
-func (p *params) NonceSize() int {
+func (*chacha20Key) NonceSize() int {
 	return chacha20.NonceSize
 }
 
-func (p *params) Open(dst, nonce, ciphertext, data []byte) ([]byte, error) {
-	if len(nonce) != chacha20.NonceSize {
-		panic("chacha20poly1305: invalid nonce size")
+func (k *chacha20Key) Open(dst, nonce, ciphertext, data []byte) ([]byte, error) {
+	if len(nonce) != k.NonceSize() {
+		return nil, ErrInvalidNonce
 	}
 
-	digest := ciphertext[len(ciphertext)-poly1305.Size:]
-	ciphertext = ciphertext[0 : len(ciphertext)-poly1305.Size]
+	digest := ciphertext[len(ciphertext)-k.Overhead():]
+	ciphertext = ciphertext[0 : len(ciphertext)-k.Overhead()]
 
-	c, h := p.initialize(nonce)
+	c, h := k.initialize(nonce)
 
 	calculateTag(h, ciphertext, data)
 
@@ -73,12 +89,12 @@ func (p *params) Open(dst, nonce, ciphertext, data []byte) ([]byte, error) {
 	return plaintext, nil
 }
 
-func (p *params) Seal(dst, nonce, plaintext, data []byte) []byte {
-	if len(nonce) != chacha20.NonceSize {
-		panic("chacha20poly1305: invalid nonce size")
+func (k *chacha20Key) Seal(dst, nonce, plaintext, data []byte) []byte {
+	if len(nonce) != k.NonceSize() {
+		panic(ErrInvalidNonce)
 	}
 
-	c, h := p.initialize(nonce)
+	c, h := k.initialize(nonce)
 
 	ciphertext := make([]byte, len(plaintext))
 	c.XORKeyStream(ciphertext, plaintext)
@@ -88,14 +104,16 @@ func (p *params) Seal(dst, nonce, plaintext, data []byte) []byte {
 	return append(dst, h.Sum(ciphertext)...)
 }
 
-func (p *params) Overhead() int {
+func (*chacha20Key) Overhead() int {
 	return poly1305.Size
 }
 
-func (p *params) initialize(nonce []byte) (cipher.Stream, hash.Hash) {
-	c, err := chacha20.NewCipher(p.key, nonce)
+// Converts the given key and nonce into 64 bytes of ChaCha20 key stream, the
+// first 32 of which are used as the Poly1305 key.
+func (k *chacha20Key) initialize(nonce []byte) (cipher.Stream, hash.Hash) {
+	c, err := chacha20.NewCipher(k[0:], nonce)
 	if err != nil {
-		panic(err)
+		panic(err) // basically impossible
 	}
 
 	subkey := make([]byte, 64)
@@ -103,7 +121,7 @@ func (p *params) initialize(nonce []byte) (cipher.Stream, hash.Hash) {
 
 	h, err := poly1305.New(subkey[0:poly1305.KeySize])
 	if err != nil {
-		panic(err)
+		panic(err) // basically impossible
 	}
 
 	return c, h
