@@ -1,5 +1,5 @@
 // Package chacha20poly1305 implements the ChaCha20Poly1305 AEAD construction as
-// specified in draft-agl-tls-chacha20poly1305-00:
+// specified in draft-agl-tls-chacha20poly1305-02:
 //
 //     ChaCha20 is run with the given key and nonce and with the two counter
 //     words set to zero.  The first 32 bytes of the 64 byte output are
@@ -18,7 +18,7 @@
 //     values.  The resulting tag is appended to the ciphertext, resulting
 //     in the output of the AEAD operation.
 //
-// http://tools.ietf.org/html/draft-agl-tls-chacha20poly1305-00
+// http://tools.ietf.org/html/draft-agl-tls-chacha20poly1305-02
 package chacha20poly1305
 
 import (
@@ -131,10 +131,10 @@ func tag(h hash.Hash, ciphertext, data []byte) {
 	b := make([]byte, 8)
 
 	binary.LittleEndian.PutUint64(b, uint64(len(data)))
-	h.Write(b)
 	h.Write(data)
+	h.Write(b)
 
 	binary.LittleEndian.PutUint64(b, uint64(len(ciphertext)))
-	h.Write(b)
 	h.Write(ciphertext)
+	h.Write(b)
 }

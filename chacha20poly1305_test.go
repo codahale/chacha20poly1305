@@ -9,14 +9,14 @@ import (
 	"testing"
 )
 
-// stolen from http://tools.ietf.org/html/draft-agl-tls-chacha20poly1305-00#section-7
+// stolen from http://tools.ietf.org/html/draft-agl-tls-chacha20poly1305-02#section-7
 var testVectors = [][]string{
 	[]string{
-		"e3c37ba4984da482b4f978f314b149857f4f3027470bced382ad92889ed4fcb6",
-		"1400000cbe2f24b0b1bf5276fc91a9ad",
-		"0000000000000000",
-		"00000000000000001603030010",
-		"46d4b8cfb0323dcad49cafe58ad009602fe190ebb314ddab20e541fdb7b7541c",
+		"4290bcb154173531f314af57f3be3b5006da371ece272afa1b5dbdd1100a1007",
+		"86d09974840bded2a5ca",
+		"cd7cf67be39c794a",
+		"87e229d4500845a079c0",
+		"e3e446f7ede9a19b62a4677dabf4e3d24b876bb284753896e1d6",
 	},
 }
 
@@ -246,5 +246,5 @@ func ExampleNewChaCha20Poly1305() {
 
 	fmt.Printf("%x\n", ciphertext)
 	// Output:
-	// e6669e9e333e4a5af5df32dd1c232712994c7c7796126e91a2ad
+	// e6669e9e333e4a5af5df2b8d1669cbdc175bb32da46484e6e358
 }
