@@ -207,22 +207,6 @@ func TestOpenInvalidNonce(t *testing.T) {
 	}
 }
 
-func BenchmarkChaCha20Poly1305(b *testing.B) {
-	key := make([]byte, KeySize)
-	nonce := make([]byte, 8)
-	c, err := NewChaCha20Poly1305(key)
-	if err != nil {
-		panic(err)
-	}
-
-	input := make([]byte, 1024*1024)
-
-	b.SetBytes(int64(len(input)))
-	for i := 0; i < b.N; i++ {
-		c.Seal(nil, nonce, input, nil)
-	}
-}
-
 func readSecretKey(i int) []byte {
 	return make([]byte, i)
 }
