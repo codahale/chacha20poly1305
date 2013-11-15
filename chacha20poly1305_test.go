@@ -2,10 +2,10 @@ package chacha20poly1305
 
 import (
 	"bytes"
+	"code.google.com/p/go.crypto/poly1305"
 	"encoding/hex"
 	"fmt"
 	"github.com/codahale/chacha20"
-	"github.com/codahale/poly1305"
 	"testing"
 )
 
@@ -153,8 +153,8 @@ func TestOverhead(t *testing.T) {
 		t.Error(err)
 	}
 
-	if c.Overhead() != poly1305.Size {
-		t.Errorf("Expected overhead of %d but was %d", poly1305.Size, c.Overhead())
+	if c.Overhead() != poly1305.TagSize {
+		t.Errorf("Expected overhead of %d but was %d", poly1305.TagSize, c.Overhead())
 	}
 }
 
