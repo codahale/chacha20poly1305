@@ -1,10 +1,10 @@
 // Package chacha20poly1305 implements the AEAD_CHACHA20_POLY1305 algorithm
-// specified in draft-agl-tls-chacha20poly1305-03[1]:
+// (http://tools.ietf.org/html/draft-agl-tls-chacha20poly1305-03):
 //
 //     ChaCha20 is run with the given key and nonce and with the two counter
 //     words set to zero. The first 32 bytes of the 64 byte output are
-//     saved to become the one-time key for Poly1305.  The remainder of the
-//     output is discarded.  The first counter input word is set to one and
+//     saved to become the one-time key for Poly1305. The remainder of the
+//     output is discarded. The first counter input word is set to one and
 //     the plaintext is encrypted by XORing it with the output of
 //     invocations of the ChaCha20 function as needed, incrementing the
 //     first counter word after each block and overflowing into the second.
@@ -14,7 +14,7 @@
 //     The Poly1305 key is used to calculate a tag for the following input:
 //     the concatenation of the number of bytes of additional data, the
 //     additional data itself, the number of bytes of ciphertext and the
-//     ciphertext itself.  Numbers are represented as 8-byte, little-endian
+//     ciphertext itself. Numbers are represented as 8-byte, little-endian
 //     values.  The resulting tag is appended to the ciphertext, resulting
 //     in the output of the AEAD operation.
 //
@@ -22,13 +22,11 @@
 // a unified API for sealing messages in a way which provides both
 // confidentiality *and* integrity. Unlike unauthenticated modes like CBC,
 // AEAD algorithms are resistant to chosen ciphertext attacks, such as padding
-// oracle attacks, etc.
+// oracle attacks, etc., and add only 16 bytes of overhead.
 //
 // AEAD_CHACHA20_POLY1305 has a significant speed advantage over other AEAD
-// algorithms like AES-GCM, as well as being resistant to implementation-specific
-// timing attacks.
-//
-// [1] http://tools.ietf.org/html/draft-agl-tls-chacha20poly1305-03
+// algorithms like AES-GCM, as well as being extremeley resistant to timing
+// attacks.
 package chacha20poly1305
 
 import (
