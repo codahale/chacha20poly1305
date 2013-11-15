@@ -2,7 +2,7 @@
 // specified in draft-agl-tls-chacha20poly1305-03[1]:
 //
 //     ChaCha20 is run with the given key and nonce and with the two counter
-//     words set to zero.  The first 32 bytes of the 64 byte output are
+//     words set to zero. The first 32 bytes of the 64 byte output are
 //     saved to become the one-time key for Poly1305.  The remainder of the
 //     output is discarded.  The first counter input word is set to one and
 //     the plaintext is encrypted by XORing it with the output of
