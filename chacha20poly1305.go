@@ -137,16 +137,16 @@ func (k *chacha20Key) initialize(nonce []byte) (cipher.Stream, [32]byte) {
 }
 
 func tag(key [32]byte, ciphertext, data []byte) []byte {
-	dataLen := make([]byte, 8)
-	binary.LittleEndian.PutUint64(dataLen, uint64(len(data)))
+	m := make([]byte, len(ciphertext)+len(data)+8+8)
+	copy(m[0:], data)
+	binary.LittleEndian.PutUint64(m[len(data):], uint64(len(data)))
 
-	ciphertextLen := make([]byte, 8)
-	binary.LittleEndian.PutUint64(ciphertextLen, uint64(len(ciphertext)))
-
-	message := append(append(append(data, dataLen...), ciphertext...), ciphertextLen...)
+	copy(m[len(data)+8:], ciphertext)
+	binary.LittleEndian.PutUint64(m[len(data)+8+len(ciphertext):],
+		uint64(len(ciphertext)))
 
 	var out [poly1305.TagSize]byte
-	poly1305.Sum(&out, message, &key)
+	poly1305.Sum(&out, m, &key)
 
 	return out[0:]
 }
