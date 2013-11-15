@@ -1,5 +1,5 @@
-// Package chacha20poly1305 implements the ChaCha20Poly1305 AEAD construction as
-// specified in draft-agl-tls-chacha20poly1305-02:
+// Package chacha20poly1305 implements the AEAD_CHACHA20_POLY1305 algorithm
+// specified in draft-agl-tls-chacha20poly1305-03:
 //
 //     ChaCha20 is run with the given key and nonce and with the two counter
 //     words set to zero.  The first 32 bytes of the 64 byte output are
@@ -7,7 +7,7 @@
 //     output is discarded.  The first counter input word is set to one and
 //     the plaintext is encrypted by XORing it with the output of
 //     invocations of the ChaCha20 function as needed, incrementing the
-//     first counter word for each block and overflowing into the second.
+//     first counter word after each block and overflowing into the second.
 //     (In the case of the TLS, limits on the plaintext size mean that the
 //     first counter word will never overflow in practice.)
 //
@@ -18,7 +18,7 @@
 //     values.  The resulting tag is appended to the ciphertext, resulting
 //     in the output of the AEAD operation.
 //
-// http://tools.ietf.org/html/draft-agl-tls-chacha20poly1305-02
+// http://tools.ietf.org/html/draft-agl-tls-chacha20poly1305-03
 package chacha20poly1305
 
 import (
