@@ -22,13 +22,12 @@
 package chacha20poly1305
 
 import (
+	"code.google.com/p/go.crypto/poly1305"
 	"crypto/cipher"
 	"crypto/subtle"
 	"encoding/binary"
 	"errors"
 	"github.com/codahale/chacha20"
-	"github.com/codahale/poly1305"
-	"hash"
 )
 
 type chacha20Key [chacha20.KeySize]byte // A 256-bit ChaCha20 key.
@@ -68,7 +67,7 @@ func (*chacha20Key) NonceSize() int {
 }
 
 func (*chacha20Key) Overhead() int {
-	return poly1305.Size
+	return poly1305.TagSize
 }
 
 func (k *chacha20Key) Seal(dst, nonce, plaintext, data []byte) []byte {
@@ -76,14 +75,14 @@ func (k *chacha20Key) Seal(dst, nonce, plaintext, data []byte) []byte {
 		panic(ErrInvalidNonce)
 	}
 
-	c, h := k.initialize(nonce)
+	c, pk := k.initialize(nonce)
 
 	ciphertext := make([]byte, len(plaintext))
 	c.XORKeyStream(ciphertext, plaintext)
 
-	tag(h, ciphertext, data)
+	tag := tag(pk, ciphertext, data)
 
-	return append(dst, h.Sum(ciphertext)...)
+	return append(dst, append(ciphertext, tag...)...)
 }
 
 func (k *chacha20Key) Open(dst, nonce, ciphertext, data []byte) ([]byte, error) {
@@ -94,11 +93,11 @@ func (k *chacha20Key) Open(dst, nonce, ciphertext, data []byte) ([]byte, error) 
 	digest := ciphertext[len(ciphertext)-k.Overhead():]
 	ciphertext = ciphertext[0 : len(ciphertext)-k.Overhead()]
 
-	c, h := k.initialize(nonce)
+	c, pk := k.initialize(nonce)
 
-	tag(h, ciphertext, data)
+	tag := tag(pk, ciphertext, data)
 
-	if subtle.ConstantTimeCompare(h.Sum(nil), digest) != 1 {
+	if subtle.ConstantTimeCompare(tag, digest) != 1 {
 		return nil, ErrAuthFailed
 	}
 
@@ -110,7 +109,7 @@ func (k *chacha20Key) Open(dst, nonce, ciphertext, data []byte) ([]byte, error) 
 
 // Converts the given key and nonce into 64 bytes of ChaCha20 key stream, the
 // first 32 of which are used as the Poly1305 key.
-func (k *chacha20Key) initialize(nonce []byte) (cipher.Stream, hash.Hash) {
+func (k *chacha20Key) initialize(nonce []byte) (cipher.Stream, [32]byte) {
 	c, err := chacha20.NewCipher(k[0:], nonce)
 	if err != nil {
 		panic(err) // basically impossible
@@ -119,22 +118,25 @@ func (k *chacha20Key) initialize(nonce []byte) (cipher.Stream, hash.Hash) {
 	subkey := make([]byte, 64)
 	c.XORKeyStream(subkey, subkey)
 
-	h, err := poly1305.New(subkey[0:poly1305.KeySize])
-	if err != nil {
-		panic(err) // basically impossible
+	var key [32]byte
+	for i := 0; i < 32; i++ {
+		key[i] = subkey[i]
 	}
 
-	return c, h
+	return c, key
 }
 
-func tag(h hash.Hash, ciphertext, data []byte) {
-	b := make([]byte, 8)
+func tag(key [32]byte, ciphertext, data []byte) []byte {
+	dataLen := make([]byte, 8)
+	binary.LittleEndian.PutUint64(dataLen, uint64(len(data)))
 
-	binary.LittleEndian.PutUint64(b, uint64(len(data)))
-	h.Write(data)
-	h.Write(b)
+	ciphertextLen := make([]byte, 8)
+	binary.LittleEndian.PutUint64(ciphertextLen, uint64(len(ciphertext)))
 
-	binary.LittleEndian.PutUint64(b, uint64(len(ciphertext)))
-	h.Write(ciphertext)
-	h.Write(b)
+	message := append(append(append(data, dataLen...), ciphertext...), ciphertextLen...)
+
+	var out [poly1305.TagSize]byte
+	poly1305.Sum(&out, message, &key)
+
+	return out[0:]
 }
