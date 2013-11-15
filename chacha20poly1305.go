@@ -1,5 +1,5 @@
 // Package chacha20poly1305 implements the AEAD_CHACHA20_POLY1305 algorithm
-// specified in draft-agl-tls-chacha20poly1305-03:
+// specified in draft-agl-tls-chacha20poly1305-03[1]:
 //
 //     ChaCha20 is run with the given key and nonce and with the two counter
 //     words set to zero.  The first 32 bytes of the 64 byte output are
@@ -18,7 +18,17 @@
 //     values.  The resulting tag is appended to the ciphertext, resulting
 //     in the output of the AEAD operation.
 //
-// http://tools.ietf.org/html/draft-agl-tls-chacha20poly1305-03
+// The AEAD (Athenticated Encryption with Associated Data) construction provides
+// a unified API for sealing messages in a way which provides both
+// confidentiality *and* integrity. Unlike unauthenticated modes like CBC,
+// AEAD algorithms are resistant to chosen ciphertext attacks, such as padding
+// oracle attacks, etc.
+//
+// AEAD_CHACHA20_POLY1305 has a significant speed advantage over other AEAD
+// algorithms like AES-GCM, as well as being resistant to implementation-specific
+// timing attacks.
+//
+// [1] http://tools.ietf.org/html/draft-agl-tls-chacha20poly1305-03
 package chacha20poly1305
 
 import (
