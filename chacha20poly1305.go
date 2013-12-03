@@ -1,5 +1,5 @@
 // Package chacha20poly1305 implements the AEAD_CHACHA20_POLY1305 algorithm
-// (http://tools.ietf.org/html/draft-agl-tls-chacha20poly1305-03):
+// (http://tools.ietf.org/html/draft-agl-tls-chacha20poly1305-04):
 //
 //     ChaCha20 is run with the given key and nonce and with the two counter
 //     words set to zero. The first 32 bytes of the 64 byte output are
