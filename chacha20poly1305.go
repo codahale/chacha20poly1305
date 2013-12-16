@@ -1,5 +1,6 @@
-// Package chacha20poly1305 implements the AEAD_CHACHA20_POLY1305 algorithm
-// (http://tools.ietf.org/html/draft-agl-tls-chacha20poly1305-04):
+// Package chacha20poly1305 implements the AEAD_CHACHA20_POLY1305 algorithm,
+// which combines ChaCha20, a secure stream cipher, with Poly1305, a secure
+// MAC function.
 //
 //     ChaCha20 is run with the given key and nonce and with the two counter
 //     words set to zero. The first 32 bytes of the 64 byte output are
@@ -18,6 +19,8 @@
 //     values.  The resulting tag is appended to the ciphertext, resulting
 //     in the output of the AEAD operation.
 //
+// (http://tools.ietf.org/html/draft-agl-tls-chacha20poly1305-04)
+//
 // The AEAD (Athenticated Encryption with Associated Data) construction provides
 // a unified API for sealing messages in a way which provides both
 // confidentiality *and* integrity. Unlike unauthenticated modes like CBC,
@@ -30,11 +33,12 @@
 package chacha20poly1305
 
 import (
-	"code.google.com/p/go.crypto/poly1305"
 	"crypto/cipher"
 	"crypto/subtle"
 	"encoding/binary"
 	"errors"
+
+	"code.google.com/p/go.crypto/poly1305"
 	"github.com/codahale/chacha20"
 )
 
