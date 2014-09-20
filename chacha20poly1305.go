@@ -59,9 +59,9 @@ var (
 	KeySize = chacha20.KeySize
 )
 
-// NewChaCha20Poly1305 creates a new AEAD instance using the given key. The key
-// must be exactly 256 bits long.
-func NewChaCha20Poly1305(key []byte) (cipher.AEAD, error) {
+// New creates a new AEAD instance using the given key. The key must be exactly
+// 256 bits long.
+func New(key []byte) (cipher.AEAD, error) {
 	if len(key) != KeySize {
 		return nil, ErrInvalidKey
 	}

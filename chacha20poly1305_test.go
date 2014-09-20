@@ -1,12 +1,14 @@
-package chacha20poly1305
+package chacha20poly1305_test
 
 import (
 	"bytes"
-	"code.google.com/p/go.crypto/poly1305"
 	"encoding/hex"
 	"fmt"
-	"github.com/codahale/chacha20"
 	"testing"
+
+	"code.google.com/p/go.crypto/poly1305"
+	"github.com/codahale/chacha20"
+	"github.com/codahale/chacha20poly1305"
 )
 
 // stolen from http://tools.ietf.org/html/draft-agl-tls-chacha20poly1305-02#section-7
@@ -49,7 +51,7 @@ func TestSealing(t *testing.T) {
 			t.Error(err)
 		}
 
-		c, err := NewChaCha20Poly1305(key)
+		c, err := chacha20poly1305.New(key)
 		if err != nil {
 			t.Error(err)
 		}
@@ -70,9 +72,9 @@ func TestSealing(t *testing.T) {
 }
 
 func TestRoundtrip(t *testing.T) {
-	key := make([]byte, KeySize)
+	key := make([]byte, chacha20poly1305.KeySize)
 
-	c, err := NewChaCha20Poly1305(key)
+	c, err := chacha20poly1305.New(key)
 	if err != nil {
 		t.Error(err)
 	}
@@ -93,9 +95,9 @@ func TestRoundtrip(t *testing.T) {
 }
 
 func TestModifiedData(t *testing.T) {
-	key := make([]byte, KeySize)
+	key := make([]byte, chacha20poly1305.KeySize)
 
-	c, err := NewChaCha20Poly1305(key)
+	c, err := chacha20poly1305.New(key)
 	if err != nil {
 		t.Error(err)
 	}
@@ -108,15 +110,15 @@ func TestModifiedData(t *testing.T) {
 	data[0] ^= 1
 
 	_, err = c.Open(nil, nonce, ciphertext, data)
-	if err != ErrAuthFailed {
+	if err != chacha20poly1305.ErrAuthFailed {
 		t.Error("Should have failed, but didn't")
 	}
 }
 
 func TestModifiedCiphertext(t *testing.T) {
-	key := make([]byte, KeySize)
+	key := make([]byte, chacha20poly1305.KeySize)
 
-	c, err := NewChaCha20Poly1305(key)
+	c, err := chacha20poly1305.New(key)
 	if err != nil {
 		t.Error(err)
 	}
@@ -129,14 +131,14 @@ func TestModifiedCiphertext(t *testing.T) {
 	ciphertext[0] ^= 1
 
 	_, err = c.Open(nil, nonce, ciphertext, data)
-	if err != ErrAuthFailed {
+	if err != chacha20poly1305.ErrAuthFailed {
 		t.Error("Should have failed, but didn't")
 	}
 }
 
 func TestNonceSize(t *testing.T) {
-	key := make([]byte, KeySize)
-	c, err := NewChaCha20Poly1305(key)
+	key := make([]byte, chacha20poly1305.KeySize)
+	c, err := chacha20poly1305.New(key)
 	if err != nil {
 		t.Error(err)
 	}
@@ -147,8 +149,8 @@ func TestNonceSize(t *testing.T) {
 }
 
 func TestOverhead(t *testing.T) {
-	key := make([]byte, KeySize)
-	c, err := NewChaCha20Poly1305(key)
+	key := make([]byte, chacha20poly1305.KeySize)
+	c, err := chacha20poly1305.New(key)
 	if err != nil {
 		t.Error(err)
 	}
@@ -160,22 +162,22 @@ func TestOverhead(t *testing.T) {
 
 func TestInvalidKey(t *testing.T) {
 	key := make([]byte, 31)
-	_, err := NewChaCha20Poly1305(key)
+	_, err := chacha20poly1305.New(key)
 
-	if err != ErrInvalidKey {
+	if err != chacha20poly1305.ErrInvalidKey {
 		t.Errorf("Expected invalid key error but was %v", err)
 	}
 }
 
 func TestSealInvalidNonce(t *testing.T) {
 	defer func() {
-		if r := recover(); r != nil && r != ErrInvalidNonce {
+		if r := recover(); r != nil && r != chacha20poly1305.ErrInvalidNonce {
 			t.Errorf("Expected invalid key panic but was %v", r)
 		}
 	}()
 
-	key := make([]byte, KeySize)
-	c, err := NewChaCha20Poly1305(key)
+	key := make([]byte, chacha20poly1305.KeySize)
+	c, err := chacha20poly1305.New(key)
 
 	if err != nil {
 		t.Error(err)
@@ -188,8 +190,8 @@ func TestSealInvalidNonce(t *testing.T) {
 }
 
 func TestOpenInvalidNonce(t *testing.T) {
-	key := make([]byte, KeySize)
-	c, err := NewChaCha20Poly1305(key)
+	key := make([]byte, chacha20poly1305.KeySize)
+	c, err := chacha20poly1305.New(key)
 
 	if err != nil {
 		t.Error(err)
@@ -202,7 +204,7 @@ func TestOpenInvalidNonce(t *testing.T) {
 
 	_, err = c.Open(nil, nonce[0:4], ciphertext, data)
 
-	if err != ErrInvalidNonce {
+	if err != chacha20poly1305.ErrInvalidNonce {
 		t.Errorf("Expected invalid nonce error but was %v", err)
 	}
 }
@@ -215,10 +217,10 @@ func readRandomNonce(i int) []byte {
 	return make([]byte, i)
 }
 
-func ExampleNewChaCha20Poly1305() {
-	key := readSecretKey(KeySize) // must be 256 bits long
+func ExampleNew() {
+	key := readSecretKey(chacha20poly1305.KeySize) // must be 256 bits long
 
-	c, err := NewChaCha20Poly1305(key)
+	c, err := chacha20poly1305.New(key)
 	if err != nil {
 		panic(err)
 	}

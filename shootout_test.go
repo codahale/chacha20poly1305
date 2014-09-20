@@ -1,9 +1,11 @@
-package chacha20poly1305
+package chacha20poly1305_test
 
 import (
 	"crypto/aes"
 	"crypto/cipher"
 	"testing"
+
+	"github.com/codahale/chacha20poly1305"
 )
 
 const benchSize = 1024 * 1024
@@ -20,8 +22,8 @@ func benchmarkAEAD(b *testing.B, c cipher.AEAD) {
 }
 
 func BenchmarkChaCha20Poly1305(b *testing.B) {
-	key := make([]byte, KeySize)
-	c, _ := NewChaCha20Poly1305(key)
+	key := make([]byte, chacha20poly1305.KeySize)
+	c, _ := chacha20poly1305.New(key)
 	benchmarkAEAD(b, c)
 }
 
