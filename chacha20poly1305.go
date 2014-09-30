@@ -47,13 +47,13 @@ type chacha20Key [chacha20.KeySize]byte // A 256-bit ChaCha20 key.
 var (
 	// ErrAuthFailed is returned when the message authentication is invalid due
 	// to tampering.
-	ErrAuthFailed = errors.New("chacha20poly1305: message authentication failed")
+	ErrAuthFailed = errors.New("message authentication failed")
 
 	// ErrInvalidKey is returned when the provided key is the wrong size.
-	ErrInvalidKey = errors.New("chacha20poly1305: invalid key size")
+	ErrInvalidKey = errors.New("invalid key size")
 
 	// ErrInvalidNonce is returned when the provided nonce is the wrong size.
-	ErrInvalidNonce = errors.New("chacha20poly1305: invalid nonce size")
+	ErrInvalidNonce = errors.New("invalid nonce size")
 
 	// KeySize is the required size of ChaCha20 keys.
 	KeySize = chacha20.KeySize
