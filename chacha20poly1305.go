@@ -122,7 +122,7 @@ func (k *chacha20Key) Open(dst, nonce, ciphertext, data []byte) ([]byte, error) 
 // Converts the given key and nonce into 64 bytes of ChaCha20 key stream, the
 // first 32 of which are used as the Poly1305 key.
 func (k *chacha20Key) initialize(nonce []byte) (cipher.Stream, [32]byte) {
-	c, err := chacha20.NewCipher(k[0:], nonce)
+	c, err := chacha20.New(k[0:], nonce)
 	if err != nil {
 		panic(err) // basically impossible
 	}
