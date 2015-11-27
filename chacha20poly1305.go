@@ -116,7 +116,7 @@ func (k *chacha20Key) Open(dst, nonce, ciphertext, data []byte) ([]byte, error) 
 	plaintext := make([]byte, len(ciphertext))
 	c.XORKeyStream(plaintext, ciphertext)
 
-	return plaintext, nil
+	return append(dst, plaintext...), nil
 }
 
 // Converts the given key and nonce into 64 bytes of ChaCha20 key stream, the
